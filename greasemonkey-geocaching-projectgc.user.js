@@ -51,6 +51,7 @@
         latestLogs = [],
         latestLogsAlert = false,
         settings = {},
+        optionSettings = {},
         path = window.location.pathname;
 
     // Don't run the script for iframes
@@ -192,13 +193,115 @@
             hideMapFromPrintCachePage: {
                 title: 'Hide map from print cache page',
                 default: true
+            },
+            addWeekdayToCacheDate: {
+                title: 'Add weekday to date on cachepage',
+                default: true,
+                optionType: 'dateformat',
+                options: {
+                    date0: {
+                        format: "d. m. yyyy",
+                        regex: /[\d]{1,2}\.\s[\d]{1,2}\.\s[\d]{4}/
+                    },
+                    date1: {
+                        format: "d.m.yyyy",
+                        regex: /[\d]{1,2}\.[\d]{1,2}\.[\d]{4}/
+                    },
+                    date2: {
+                        format: "d.mm.yyyy",
+                        regex: /[\d]{1,2}\.[\d]{2}\.[\d]{4}/
+                    },
+                    date3: {
+                        format: "d/m/yy",
+                        regex: /[\d]{1,2}\/[\d]{1,2}\/[\d]{2}/
+                    },
+                    date4: {
+                        format:"d/m/yyyy",
+                        regex: /[\d]{1,2}\/[\d]{1,2}\/[\d]{4}/
+                    },
+                    date5: {
+                        format:"d/mm/yyyy",
+                        regex: /[\d]{1,2}\/[\d]{2}\/[\d]{4}/
+                    },
+                    date6: {
+                        format:"dd mmm yy",
+                        regex: /[\d]{2}\s[\w]{3}\s[\d]{2}/
+                    },
+                    date7: {
+                        format:"dd.mm.yy",
+                        regex: /[\d]{2}\.[\d]{2}\.[\d]{2}/
+                    },
+                    date8: {
+                        format:"dd.mm.yyyy",
+                        regex: /[\d]{2}\.[\d]{2}\.[\d]{4}/
+                    },
+                    date9: {
+                        format:"dd.mm.yyyy.",
+                        regex: /[\d]{2}\.[\d]{2}\.[\d]{4}\./
+                    },
+                    date10: {
+                        format:"dd.mmm.yyyy",
+                        regex: /[\d]{2}\.[\w]{3}\.[\d]{4}/
+                    },
+                    date11: {
+                        format:"dd/mm/yy",
+                        regex: /[\d]{2}\/[\d]{2}\/[\d]{2}/
+                    },
+                    date12: {
+                        format:"dd/mm/yyyy",
+                        regex: /[\d]{2}\/[\d]{2}\/[\d]{4}/
+                    },
+                    date13: {
+                        format:"dd/mmm/yyyy",
+                        regex: /[\d]{2}\/[\w]{3}\/[\d]{4}/
+                    },
+                    date14: {
+                        format:"dd-mm-yy",
+                        regex: /[\d]{1,2}-[\d]{1,2}-[\d]{2}/
+                    },
+                    date15: {
+                        format:"dd-mm-yyyy",
+                        regex: /[\d]{2}-[\d]{2}-[\d]{4}/
+                    },
+                    date16: {
+                        format:"d-m-yyyy",
+                        regex: /[\d]{1,2}-[\d]{1,2}-[\d]{4}/
+                    },
+                    date17: {
+                        format:"m/d/yyyy",
+                        regex: /[\d]{1,2}\/[\d]{1,2}\/[\d]{4}/
+                    },
+                    date18: {
+                        format:"mm/dd/yyyy",
+                        regex: /[\d]{2}\/[\d]{2}\/[\d]{4}/
+                    },
+                    date19: {
+                        format:"mmm/dd/yyyy",
+                        regex: /[\w]{3}\/[\d]{2}\/[\d]{4}/
+                    },
+                    date20: {
+                        format:"yyyy.mm.dd.",
+                        regex: /[\d]{4}\.[\d]{2}\.[\d]{2}\./
+                    },
+                    date21: {
+                        format:"yyyy/mm/dd",
+                        regex: /[\d]{4}\/[\d]{2}\/[\d]{2}/,
+                    },
+                    date22: {
+                        format:"yyyy-mm-dd",
+                        regex: /[\d]{4}-[\d]{2}-[\d]{2}/,
+                        default: true
+                    }
+                }
             }
+
         };
         return items;
     }
 
     async function ReadSettings() {
         settings = await GM.getValue('settings');
+        optionSettings = await GM.getValue('optionSettings');
         if (typeof(settings) != 'undefined') {
             settings = JSON.parse(settings);
             if (settings === null) {
@@ -208,10 +311,28 @@
             settings = [];
         }
 
+        if (typeof(optionSettings) != 'undefined') {
+            optionSettings = JSON.parse(optionSettings);
+            if (optionSettings === null) {
+                optionSettings = [];
+            }
+        } else {
+            optionSettings = [];
+        }
+
         var items = GetSettingsItems();
         for (var item in items) {
             if (typeof(settings[item]) == 'undefined') {
                 settings[item] = items[item].default;
+            }
+
+            if (typeof(items[item].options) != 'undefined' && typeof(optionSettings[item]) == 'undefined') {
+                Object.keys(items[item].options).map(function(objectKey, index) {
+                    let value = items[item].options[objectKey];
+                    if(typeof(value.default) != 'undefined' && value.default) {
+                        optionSettings[item] = value;
+                    }
+                });
             }
         }
     }
@@ -219,13 +340,34 @@
     function SaveSettings(e) {
         e.preventDefault();
         settings = {};
+        optionSettings = {};
 
-        for (var item in GetSettingsItems()) {
+        var items = GetSettingsItems();
+        for (var item in items) {
             settings[item] = Boolean($('#pgcUserMenuForm input[name="' + item + '"]').is(':checked'));
+
+            if (typeof(items[item].options) != 'undefined') {
+                let optionType = 'select';
+                if (typeof(items[item].optionType) != 'undefined') {
+                    optionType = items[item].optionType;
+                }
+
+                switch(optionType) {
+                    case 'select':
+                    case 'dateformat':
+                        optionSettings[item] = items[item].options[$('#pgcUserMenuForm select[name="' + item + '_option"]').val()];
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         var json = JSON.stringify(settings);
         GM.setValue('settings', json);
+
+        json = JSON.stringify(optionSettings);
+        GM.setValue('optionSettings', json);
 
         $('#pgcUserMenuWarning').css('display', 'inherit');
     }
@@ -392,6 +534,28 @@
             isChecked = IsSettingEnabled(item) ? ' checked="checked"' : '';
             // Explicitly set the styles as some pages (i.e. https://www.geocaching.com/account/settings/profile) are missing the required css.
             html += '<li style="margin: .2em 1em; white-space: nowrap;"><label style="font-weight: inherit; margin-bottom: 0"><input type="checkbox" name="' + item + '"' + isChecked + ' >&nbsp;' + items[item].title + '</label> <small>(default: ' + items[item].default + ')</small></li>';
+            if (typeof(items[item].options) != 'undefined') {
+                let optionType = 'select';
+                if (typeof(items[item].optionType) != 'undefined') {
+                    optionType = items[item].optionType;
+                }
+
+                switch(optionType) {
+                    case "dateformat":
+                        html += '<li style="margin: .2em 1em; white-space: nowrap;"><select name="' + item + '_option">';
+                        Object.keys(items[item].options).map(function(objectKey, index) {
+                            let value = items[item].options[objectKey],
+                                date = new Date(),
+                                isSelected = optionSettings[item].format == value.format ? ' selected' : '';
+                            html += '<option value="' + objectKey + '"' + isSelected + '>' + date.format(value.format) + '</option>';
+                        });
+                        html +='</select></li>';
+                        break;
+                    default:
+                        break;
+                }
+            }
+
         }
 
         html += '\
@@ -413,7 +577,7 @@
         }
 
         $("#pgcUserMenuButton, #pgcSettingsOverlay").click(function(e) {
-          $('#pgcUserMenu, #pgcSettingsOverlay').toggle();
+            $('#pgcUserMenu, #pgcSettingsOverlay').toggle();
         })
 
         $('#pgcUserMenuSave').click(function(e) {
@@ -1035,7 +1199,7 @@
             }, 500);
         }
 
-	}
+    }
 
     function Page_Gallery() {
         // Find location data in exif tags
@@ -1055,35 +1219,35 @@
     }
 
     function Page_Bookmarks() {
-		var owner_name = $("#ctl00_ContentBody_ListInfo_uxListOwner").text();
+        var owner_name = $("#ctl00_ContentBody_ListInfo_uxListOwner").text();
 
-		var search = window.location.search;
-		var guid_start = search.indexOf("guid=");
-		if (guid_start == -1) {
-			/* the guid= not found in URL
-			 * something is wrong so we will not generate bad URL
-			 */
-			return;
-		}
-		var guid = search.substr(guid_start + 5/*, eof */);
+        var search = window.location.search;
+        var guid_start = search.indexOf("guid=");
+        if (guid_start == -1) {
+            /* the guid= not found in URL
+             * something is wrong so we will not generate bad URL
+             */
+            return;
+        }
+        var guid = search.substr(guid_start + 5/*, eof */);
 
-		var url = "https://project-gc.com/Tools/MapBookmarklist?owner_name=" + owner_name + "&guid=" + guid;
-		var icon = "https://cdn2.project-gc.com/images/map_app_16.png";
+        var url = "https://project-gc.com/Tools/MapBookmarklist?owner_name=" + owner_name + "&guid=" + guid;
+        var icon = "https://cdn2.project-gc.com/images/map_app_16.png";
 
-		/* Heading link */
-		var html = ' <a href="' + url + '" title="Map this Bookmark list using Project-GC" style="padding-left:20px;"><img src="' + icon + '" /> Map this!</a>';
+        /* Heading link */
+        var html = ' <a href="' + url + '" title="Map this Bookmark list using Project-GC" style="padding-left:20px;"><img src="' + icon + '" /> Map this!</a>';
 
-		$("#ctl00_ContentBody_lbHeading").after(html);
+        $("#ctl00_ContentBody_lbHeading").after(html);
 
-		/* Footer button */
-		var html2 = '<p><input type="button" onclick="window.location.href= \'' + url + '\'" value="Map this Bookmark list on Project-GC" /></p>';
+        /* Footer button */
+        var html2 = '<p><input type="button" onclick="window.location.href= \'' + url + '\'" value="Map this Bookmark list on Project-GC" /></p>';
 
-		$("#ctl00_ContentBody_ListInfo_btnDownload").parent().before(html2);
+        $("#ctl00_ContentBody_ListInfo_btnDownload").parent().before(html2);
     }
 
     function Page_Drafts() {
         if (IsSettingEnabled("openDraftLogInSameWindow")) {
-          waitForKeyElements('#draftsHub > ul.draft-list > li.draft-item', Draft);
+            waitForKeyElements('#draftsHub > ul.draft-list > li.draft-item', Draft);
         }
     }
 
@@ -1981,3 +2145,130 @@
     }
 }.call(this));
 // -- https://github.com/exif-js/exif-js
+
+// http://stevenlevithan.com/assets/misc/date.format.js
+/*
+ * Date Format 1.2.3
+ * (c) 2007-2009 Steven Levithan <stevenlevithan.com>
+ * MIT license
+ *
+ * Includes enhancements by Scott Trenda <scott.trenda.net>
+ * and Kris Kowal <cixar.com/~kris.kowal/>
+ *
+ * Accepts a date, a mask, or a date and a mask.
+ * Returns a formatted version of the given date.
+ * The date defaults to the current date/time.
+ * The mask defaults to dateFormat.masks.default.
+ */
+
+var dateFormat = function () {
+    var	token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+        timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
+        timezoneClip = /[^-+\dA-Z]/g,
+        pad = function (val, len) {
+            val = String(val);
+            len = len || 2;
+            while (val.length < len) val = "0" + val;
+            return val;
+        };
+
+    // Regexes and supporting functions are cached through closure
+    return function (date, mask, utc) {
+        var dF = dateFormat;
+
+        // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+        if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
+            mask = date;
+            date = undefined;
+        }
+
+        // Passing date through Date applies Date.parse, if necessary
+        date = date ? new Date(date) : new Date;
+        if (isNaN(date)) throw SyntaxError("invalid date");
+
+        mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+
+        // Allow setting the utc argument via the mask
+        if (mask.slice(0, 4) == "UTC:") {
+            mask = mask.slice(4);
+            utc = true;
+        }
+
+        var	_ = utc ? "getUTC" : "get",
+            d = date[_ + "Date"](),
+            D = date[_ + "Day"](),
+            m = date[_ + "Month"](),
+            y = date[_ + "FullYear"](),
+            H = date[_ + "Hours"](),
+            M = date[_ + "Minutes"](),
+            s = date[_ + "Seconds"](),
+            L = date[_ + "Milliseconds"](),
+            o = utc ? 0 : date.getTimezoneOffset(),
+            flags = {
+                d:    d,
+                dd:   pad(d),
+                ddd:  dF.i18n.dayNames[D],
+                dddd: dF.i18n.dayNames[D + 7],
+                m:    m + 1,
+                mm:   pad(m + 1),
+                mmm:  dF.i18n.monthNames[m],
+                mmmm: dF.i18n.monthNames[m + 12],
+                yy:   String(y).slice(2),
+                yyyy: y,
+                h:    H % 12 || 12,
+                hh:   pad(H % 12 || 12),
+                H:    H,
+                HH:   pad(H),
+                M:    M,
+                MM:   pad(M),
+                s:    s,
+                ss:   pad(s),
+                l:    pad(L, 3),
+                L:    pad(L > 99 ? Math.round(L / 10) : L),
+                t:    H < 12 ? "a"  : "p",
+                tt:   H < 12 ? "am" : "pm",
+                T:    H < 12 ? "A"  : "P",
+                TT:   H < 12 ? "AM" : "PM",
+                Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+                o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+                S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+            };
+
+        return mask.replace(token, function ($0) {
+            return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+        });
+    };
+}();
+
+// Some common format strings
+dateFormat.masks = {
+    "default":      "ddd mmm dd yyyy HH:MM:ss",
+    shortDate:      "m/d/yy",
+    mediumDate:     "mmm d, yyyy",
+    longDate:       "mmmm d, yyyy",
+    fullDate:       "dddd, mmmm d, yyyy",
+    shortTime:      "h:MM TT",
+    mediumTime:     "h:MM:ss TT",
+    longTime:       "h:MM:ss TT Z",
+    isoDate:        "yyyy-mm-dd",
+    isoTime:        "HH:MM:ss",
+    isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
+    isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+};
+
+// Internationalization strings
+dateFormat.i18n = {
+    dayNames: [
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    ],
+    monthNames: [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+    ]
+};
+
+// For convenience...
+Date.prototype.format = function (mask, utc) {
+    return dateFormat(this, mask, utc);
+};
