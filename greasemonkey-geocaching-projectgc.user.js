@@ -195,101 +195,101 @@
                 default: true
             },
             addWeekdayToCacheDate: {
-                title: 'Add weekday to date on cachepage',
+                title: 'Add weekday to date on cache page',
                 default: true,
                 optionType: 'dateformat',
                 options: {
                     date0: {
                         format: "d. m. yyyy",
-                        regex: /[\d]{1,2}\.\s[\d]{1,2}\.\s[\d]{4}/
+                        regex: "[\\d]{1,2}\\.\\s[\\d]{1,2}\\.\\s[\\d]{4}"
                     },
                     date1: {
                         format: "d.m.yyyy",
-                        regex: /[\d]{1,2}\.[\d]{1,2}\.[\d]{4}/
+                        regex: "[\\d]{1,2}\\.[\\d]{1,2}\\.[\\d]{4}"
                     },
                     date2: {
                         format: "d.mm.yyyy",
-                        regex: /[\d]{1,2}\.[\d]{2}\.[\d]{4}/
+                        regex: "[\\d]{1,2}\\.[\\d]{2}\\.[\\d]{4}"
                     },
                     date3: {
                         format: "d/m/yy",
-                        regex: /[\d]{1,2}\/[\d]{1,2}\/[\d]{2}/
+                        regex: "[\\d]{1,2}\\/[\\d]{1,2}\\/[\\d]{2}"
                     },
                     date4: {
                         format:"d/m/yyyy",
-                        regex: /[\d]{1,2}\/[\d]{1,2}\/[\d]{4}/
+                        regex: "[\\d]{1,2}\\/[\\d]{1,2}\\/[\\d]{4}"
                     },
                     date5: {
                         format:"d/mm/yyyy",
-                        regex: /[\d]{1,2}\/[\d]{2}\/[\d]{4}/
+                        regex: "[\\d]{1,2}\\/[\\d]{2}\\/[\\d]{4}"
                     },
                     date6: {
                         format:"dd mmm yy",
-                        regex: /[\d]{2}\s[\w]{3}\s[\d]{2}/
+                        regex: "[\\d]{2}\\s[\\w]{3}\\s[\\d]{2}"
                     },
                     date7: {
                         format:"dd.mm.yy",
-                        regex: /[\d]{2}\.[\d]{2}\.[\d]{2}/
+                        regex: "[\\d]{2}\\.[\\d]{2}\\.[\\d]{2}"
                     },
                     date8: {
                         format:"dd.mm.yyyy",
-                        regex: /[\d]{2}\.[\d]{2}\.[\d]{4}/
+                        regex: "[\\d]{2}\\.[\\d]{2}\\.[\\d]{4}"
                     },
                     date9: {
                         format:"dd.mm.yyyy.",
-                        regex: /[\d]{2}\.[\d]{2}\.[\d]{4}\./
+                        regex: "[\\d]{2}\\.[\\d]{2}\\.[\\d]{4}\\."
                     },
                     date10: {
                         format:"dd.mmm.yyyy",
-                        regex: /[\d]{2}\.[\w]{3}\.[\d]{4}/
+                        regex: "[\\d]{2}\\.[\\w]{3}\\.[\\d]{4}"
                     },
                     date11: {
                         format:"dd/mm/yy",
-                        regex: /[\d]{2}\/[\d]{2}\/[\d]{2}/
+                        regex: "[\\d]{2}\\/[\\d]{2}\\/[\\d]{2}"
                     },
                     date12: {
                         format:"dd/mm/yyyy",
-                        regex: /[\d]{2}\/[\d]{2}\/[\d]{4}/
+                        regex: "[\\d]{2}\\/[\\d]{2}\\/[\\d]{4}"
                     },
                     date13: {
                         format:"dd/mmm/yyyy",
-                        regex: /[\d]{2}\/[\w]{3}\/[\d]{4}/
+                        regex: "[\\d]{2}\\/[\\w]{3}\\/[\\d]{4}"
                     },
                     date14: {
                         format:"dd-mm-yy",
-                        regex: /[\d]{1,2}-[\d]{1,2}-[\d]{2}/
+                        regex: "[\\d]{1,2}-[\\d]{1,2}-[\\d]{2}"
                     },
                     date15: {
                         format:"dd-mm-yyyy",
-                        regex: /[\d]{2}-[\d]{2}-[\d]{4}/
+                        regex: "[\\d]{2}-[\\d]{2}-[\\d]{4}"
                     },
                     date16: {
                         format:"d-m-yyyy",
-                        regex: /[\d]{1,2}-[\d]{1,2}-[\d]{4}/
+                        regex: "[\\d]{1,2}-[\\d]{1,2}-[\\d]{4}"
                     },
                     date17: {
                         format:"m/d/yyyy",
-                        regex: /[\d]{1,2}\/[\d]{1,2}\/[\d]{4}/
+                        regex: "[\\d]{1,2}\\/[\\d]{1,2}\\/[\\d]{4}"
                     },
                     date18: {
                         format:"mm/dd/yyyy",
-                        regex: /[\d]{2}\/[\d]{2}\/[\d]{4}/
+                        regex: "[\\d]{2}\\/[\\d]{2}\\/[\\d]{4}"
                     },
                     date19: {
                         format:"mmm/dd/yyyy",
-                        regex: /[\w]{3}\/[\d]{2}\/[\d]{4}/
+                        regex: "[\\w]{3}\\/[\\d]{2}\\/[\\d]{4}"
                     },
                     date20: {
                         format:"yyyy.mm.dd.",
-                        regex: /[\d]{4}\.[\d]{2}\.[\d]{2}\./
+                        regex: "[\\d]{4}\\.[\\d]{2}\\.[\\d]{2}\\."
                     },
                     date21: {
                         format:"yyyy/mm/dd",
-                        regex: /[\d]{4}\/[\d]{2}\/[\d]{2}/,
+                        regex: "[\\d]{4}\\/[\\d]{2}\\/[\\d]{2}"
                     },
                     date22: {
                         format:"yyyy-mm-dd",
-                        regex: /[\d]{4}-[\d]{2}-[\d]{2}/,
+                        regex: '[\\d]{4}-[\\d]{2}-[\\d]{2}',
                         default: true
                     }
                 }
@@ -685,6 +685,7 @@
     function Page_CachePage() {
         var gccode = getGcCodeFromPage(),
             placedBy = $('#ctl00_ContentBody_mcd1 a').html(),
+            hidden = $('#ctl00_ContentBody_mcd2').html(),
             lastUpdated = $('#ctl00_ContentBody_bottomSection p small time').get(1),
             lastFound = $('#ctl00_ContentBody_bottomSection p small time').get(2),
             coordinates, latitude, longitude, url;
@@ -1046,6 +1047,18 @@
                 <span>&nbsp;|&nbsp;</span><a id="pgc-logbook-yours" href="' + $('#ctl00_ContentBody_uxLogbookLink').attr('href') + '#tabs-2">Yours</a>\
                 <span>&nbsp;|&nbsp;</span><a href="' + $('#ctl00_ContentBody_uxLogbookLink').attr('href') + '#tabs-3">Friends\'</a>\
                 ').insertAfter( $('#ctl00_ContentBody_uxLogbookLink') );
+        }
+
+        if (IsSettingEnabled('addWeekdayToCacheDate')) {
+            let regex = new RegExp(optionSettings['addWeekdayToCacheDate'].regex);
+            let m;
+
+            if ((m = regex.exec(hidden)) !== null) {
+                if (m.length > 0) {
+                    let date = new Date(m[0]);
+                    $('#ctl00_ContentBody_mcd2').html(hidden.replace(regex, date.format('ddd') + ', ' + date.format(optionSettings['addWeekdayToCacheDate'].format)));
+                }
+            }
         }
     }
 
